@@ -1,227 +1,165 @@
-create database videogame_library;
-use videogame_library;
+CREATE DATABASE IF NOT EXISTS videogame_library;
+USE videogame_library;
 
-create table customers (
-customer_id int auto_increment primary key,
-first_name varchar(255) not null,
-last_name varchar(255) not null,
-date_of_birth date not null,
-phone_number varchar(15) not null,
-email varchar(255) not null,
-address varchar(255) not null
-
+CREATE TABLE addresses (
+    address_id INT AUTO_INCREMENT PRIMARY KEY,
+    street_address VARCHAR(255) NOT NULL,
+    city VARCHAR(255) NOT NULL,
+    state VARCHAR(255) NOT NULL,
+    zip_code VARCHAR(10) NOT NULL
 );
 
-insert into customers (first_name, last_name, date_of_birth, phone_number, email, address) values 
-('Remon', 'Sabuz', '2001-01-01', '123-456-7890', 'remon.cis344@lc.com', '911 Bronx st'),
-('Diore', 'Lemond', '2002-02-02', '987-654-3210', 'diore.cis344@lc.com', '123 Manhattan st'),
-('Arnab', 'Das', '2003-03-03', '789-123-4560', 'arnab.cis344@lc.com', '111 Brooklyn st');
-
-alter table customers
-add column address_id int,
-add constraint fk_customer_address
-	foreign key (address_id)
-    references addresses(address_id);
-    
-create table employees (
-employee_id int auto_increment primary key,
-first_name varchar(255) not null,
-last_name varchar(255) not null,
-date_of_birth date not null,
-phone_number varchar(15) not null,
-email varchar(255) not null,
-address varchar(255) not null
-
+CREATE TABLE consoles (
+    console_id INT AUTO_INCREMENT PRIMARY KEY,
+    console_name VARCHAR(255) NOT NULL
 );
 
-insert into employees (first_name, last_name, date_of_birth, phone_number, email, address) values 
-('Yanilda', 'Peralta Ramos', '2004-04-04', '800-347-4560', 'professor.cis344@lc.com', '1 Lehman st');
-
-alter table employees 
-add column address_id int,
-add constraint fk_employee_address
-	foreign key (address_id)
-    references addresses(address_id);
-    
-create table addresses (
-address_id int auto_increment primary key,
-street_address varchar(255) not null,
-city varchar(255) not null,
-state varchar(255) not null,
-zip_code varchar(10) not null
-
+CREATE TABLE customers (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    phone_number VARCHAR(15) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    address_id INT,
+    CONSTRAINT fk_customer_address 
+    FOREIGN KEY (address_id) 
+        REFERENCES addresses(address_id)
 );
 
-create table games (
-game_id int auto_increment primary key,
-title varchar(255) not null,
-genre varchar(255) not null,
-price decimal(10, 2) not null,
-age_rating varchar(10) not null,
-console varchar(50) not null
-
+CREATE TABLE employees (
+    employee_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    phone_number VARCHAR(15) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    address_id INT,
+    CONSTRAINT fk_employee_address 
+    FOREIGN KEY (address_id) 
+        REFERENCES addresses(address_id)
 );
 
-insert into games (title, genre, price, age_rating, console) values
-('God of War', 'Action-adventure', 59.99, 'Mature', 'PS5'),
-('Dragon''s Dogma', 'RPG', 49.99, 'Teen', 'PC'),
-('Yakuza', 'Action-adventure', 39.99, 'Mature', 'PS5'),
-('NBA2K24', 'Sports', 59.99, 'Everyone', 'XBOX'),
-('Forza Horizon', 'Racing', 59.99, 'Everyone', 'XBOX'),
-('Call of Duty', 'FPS', 39.99, 'Mature', 'PC'),
-('Mortal Kombat', 'Fighting', 49.99, 'Teen', 'PS5'),
-('Battlefield', 'FPS', 49.99, 'Mature', 'PS5'),
-('Hogwarts', 'RPG', 59.99, 'Teen', 'Nintendo switch'),
-('Madden NFL24', 'Sports', 49.99, 'Everyone', 'Nintendo switch');
-
-alter table games
-add column genre_id int,
-add constraint fk_games_genre
-	foreign key (genre_id)
-    references genre(genre_id);
-
-alter table games
-add column rating char(1) not null,
-add constraint check_game_rating
-	check (rating in ('E', 'T', 'M'));
-    
-update games
-set rating = 'E' /* E for everyone */
-where game_name in ('NBA2K24', 'Madden NFL24', 'Forza Horizon');
-
-update games
-set rating = 'T' /* T for teens */
-where game_name in ('Dragon''s Dogma', 'Mortal Kombat', 'Hogwarts');
-
-update games
-set rating = 'M' /* M for mature */
-where game_name in ('God of War', 'Yakuza', 'Call of Duty', 'Battlefield');
-
-alter table games
-add column console_id int,
-add constraint fk_games_console
-	foreign key (console_id)
-    references console(console_id);
-
-create table genre (
-genre_id int auto_increment primary key,
-genre_name varchar(255) not null
-
+CREATE TABLE genres (
+    genre_id INT AUTO_INCREMENT PRIMARY KEY,
+    genre_name VARCHAR(255) NOT NULL
 );
 
-insert into genre (genre_name) values
-('fighting'),
-('action-adventure'),
+CREATE TABLE games (
+    game_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    genre_id INT,
+    price DECIMAL(10, 2) NOT NULL,
+    age_rating VARCHAR(10) NOT NULL,
+    console_id INT,
+    rating CHAR(1) NOT NULL,
+    CONSTRAINT fk_games_genre 
+    FOREIGN KEY (genre_id) 
+        REFERENCES genres(genre_id),
+    CONSTRAINT check_game_rating CHECK (rating IN ('E', 'T', 'M')),
+    CONSTRAINT fk_games_console 
+    FOREIGN KEY (console_id) 
+        REFERENCES consoles(console_id)
+);
+
+CREATE TABLE game_console (
+    game_id INT,
+    console_id INT,
+    copies_available INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_id, console_id),
+    FOREIGN KEY (game_id) 
+        REFERENCES games(game_id)
+);
+
+CREATE TABLE storage (
+    storage_id INT AUTO_INCREMENT PRIMARY KEY,
+    cloud_service VARCHAR(255) NOT NULL,
+    storage_capacity INT NOT NULL,
+    monthly_fee DECIMAL(10, 2) NOT NULL
+);
+
+INSERT INTO addresses (street_address, city, state, zip_code) VALUES
+('911 Bronx st', 'Bronx', 'NY', '10452'),
+('123 Manhattan st', 'Manhattan', 'NY', '10001'),
+('111 Brooklyn st', 'Brooklyn', 'NY', '11201');
+
+INSERT INTO customers (first_name, last_name, date_of_birth, phone_number, email, address_id) VALUES 
+('Remon', 'Sabuz', '2001-01-01', '123-456-7890', 'remon.cis344@lc.com', 1),
+('Diore', 'Lemond', '2002-02-02', '987-654-3210', 'diore.cis344@lc.com', 2),
+('Arnab', 'Das', '2003-03-03', '789-123-4560', 'arnab.cis344@lc.com', 3);
+
+INSERT INTO employees (first_name, last_name, date_of_birth, phone_number, email, address_id) VALUES 
+('Yanilda', 'Peralta Ramos', '2004-04-04', '800-347-4560', 'professor.cis344@lc.com', 1);
+
+INSERT INTO genres (genre_name) VALUES
+('Fighting'),
+('Action-adventure'),
 ('RPG'),
 ('FPS'),
-('sports'),
-('racing');
+('Sports'),
+('Racing');
 
-create table game_console (
-game_id int,
-console_id int,
-primary key (game_id, console_id),
-foreign key (game_id) references games(game_id),
-foreign key (console_id) references consoles(console_id)
+INSERT INTO games (title, genre_id, price, age_rating, rating) VALUES
+('God of War', 2, 59.99, 'Mature', 'M'),
+('Dragon''s Dogma', 3, 49.99, 'Teen', 'T'),
+('Yakuza', 2, 39.99, 'Mature', 'M'),
+('NBA2K24', 5, 59.99, 'Everyone', 'E'),
+('Forza Horizon', 6, 59.99, 'Everyone', 'E'),
+('Call of Duty', 4, 39.99, 'Mature', 'M'),
+('Mortal Kombat', 1, 49.99, 'Teen', 'T'),
+('Battlefield', 4, 49.99, 'Mature', 'M'),
+('Hogwarts', 3, 59.99, 'Teen', 'T'),
+('Madden NFL24', 5, 49.99, 'Everyone', 'E');
 
-);
-
--- God of War
-INSERT INTO game_console (game_id, console_id)
-VALUES
-(1, 1),   -- PS5
-(1, 2),   -- PC
-(1, 3),   -- Xbox
-(1, 4);   -- Nintendo Switch
-
--- Dragon's Dogma
-INSERT INTO game_console (game_id, console_id)
-VALUES
-(2, 1),   -- PS5
-(2, 2),   -- PC
-(2, 3),   -- Xbox
-(2, 4);   -- Nintendo Switch
-
--- Yakuza
-INSERT INTO game_console (game_id, console_id)
-VALUES
-(3, 1),   -- PS5
-(3, 2),   -- PC
-(3, 3),   -- Xbox
-(3, 4);   -- Nintendo Switch
-
--- NBA2K24
-INSERT INTO game_console (game_id, console_id)
-VALUES
-(4, 1),   -- PS5
-(4, 2),   -- PC
-(4, 3),   -- Xbox
-(4, 4);   -- Nintendo Switch
-
--- Forza Horizon
-INSERT INTO game_console (game_id, console_id)
-VALUES
-(5, 1),   -- PS5
-(5, 2),   -- PC
-(5, 3),   -- Xbox
-(5, 4);   -- Nintendo Switch
-
--- Call of Duty
-INSERT INTO game_console (game_id, console_id)
-VALUES
-(6, 1),   -- PS5
-(6, 2),   -- PC
-(6, 3),   -- Xbox
-(6, 4);   -- Nintendo Switch
-
--- Mortal Kombat
-INSERT INTO game_console (game_id, console_id)
-VALUES
-(7, 1),   -- PS5
-(7, 2),   -- PC
-(7, 3),   -- Xbox
-(7, 4);   -- Nintendo Switch
-
--- Battlefield
-INSERT INTO game_console (game_id, console_id)
-VALUES
-(8, 1),   -- PS5
-(8, 2),   -- PC
-(8, 3),   -- Xbox
-(8, 4);   -- Nintendo Switch
-
--- Hogwarts
-INSERT INTO game_console (game_id, console_id)
-VALUES
-(9, 1),   -- PS5
-(9, 2),   -- PC
-(9, 3),   -- Xbox
-(9, 4);   -- Nintendo Switch
-
--- Madden NFL24
-INSERT INTO game_console (game_id, console_id)
-VALUES
-(10, 1),   -- PS5
-(10, 2),   -- PC
-(10, 3),   -- Xbox
-(10, 4);   -- Nintendo Switch
-
-create table console (
-console_id int auto_increment primary key,
-console_name varchar(255) not null
-
-);
-
-insert into console (console_id) values
+INSERT INTO consoles (console_name) VALUES
 ('PS5'),
 ('PC'),
 ('XBOX'),
 ('Nintendo Switch');
 
-create table storage (
-storage_id int auto_increment primary key,
-cloud_service varchar(255) not null,
-storage_capacity int not null,
-monthly_fee decimal(10, 2) not null
+-- God of War
+INSERT INTO game_console (game_id, console_id, copies_available) VALUES
+(1, 1, 10), (1, 2, 7), (1, 3, 5), (1, 4, 3);
 
-);
+-- Dragon's Dogma
+INSERT INTO game_console (game_id, console_id, copies_available) VALUES
+(2, 1, 8), (2, 2, 6), (2, 3, 4), (2, 4, 2);
+
+-- Yakuza
+INSERT INTO game_console (game_id, console_id, copies_available) VALUES
+(3, 1, 7), (3, 2, 0), (3, 3, 5), (3, 4, 3);
+
+-- NBA2K24
+INSERT INTO game_console (game_id, console_id, copies_available) VALUES
+(4, 1, 10), (4, 2, 0), (4, 3, 12), (4, 4, 0);
+
+-- Forza Horizon
+INSERT INTO game_console (game_id, console_id, copies_available) VALUES
+(5, 1, 10), (5, 2, 0), (5, 3, 15), (5, 4, 0);
+
+-- Call of Duty
+INSERT INTO game_console (game_id, console_id, copies_available) VALUES
+(6, 1, 10), (6, 2, 8), (6, 3, 0), (6, 4, 0);
+
+-- Mortal Kombat
+INSERT INTO game_console (game_id, console_id, copies_available) VALUES
+(7, 1, 10), (7, 2, 0), (7, 3, 0), (7, 4, 0);
+
+-- Battlefield
+INSERT INTO game_console (game_id, console_id, copies_available) VALUES
+(8, 1, 10), (8, 2, 0), (8, 3, 0), (8, 4, 0);
+
+-- Hogwarts
+INSERT INTO game_console (game_id, console_id, copies_available) VALUES
+(9, 1, 0), (9, 2, 0), (9, 3, 0), (9, 4, 5);
+
+-- Madden NFL24
+INSERT INTO game_console (game_id, console_id, copies_available) VALUES
+(10, 1, 10), (10, 2, 0), (10, 3, 0), (10, 4, 7);
+
+INSERT INTO storage (cloud_service, storage_capacity, monthly_fee) VALUES
+('Playstation Network Plus', 500, 24.99),
+('Xbox Game Pass', 500, 24.99),
+('Blizzard for PC', 1000, 14.99),
+('Nintendo Switch Online', 400, 19.99)
+;
